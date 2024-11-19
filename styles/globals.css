@@ -1,0 +1,18 @@
+ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    padding: 8px;
+  }
+  
+  .dropzone {
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .dropzone:hover {
+    border-color: #888888;
+    background-color: #f0f0f0;
+  }
+  
