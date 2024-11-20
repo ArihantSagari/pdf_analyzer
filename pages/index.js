@@ -29,7 +29,7 @@ const Dashboard = () => {
   ]);
   const [error, setError] = useState('');
 
-  const suggestedTags = ['File name', 'YOE', 'Job Title'];
+  const suggestedTags = ['Name', 'FileName', 'YOE', 'JobTitle'];
 
   useEffect(() => {
     const savedStep = localStorage.getItem('step');
