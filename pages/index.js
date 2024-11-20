@@ -24,7 +24,7 @@ const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [extractionTags, setExtractionTags] = useState([]);
   const [newTag, setNewTag] = useState('');
-  const [reviewData, setReviewData] = useState([
+  const [reviewData] = useState([
     { Name: 'Root', FileName: 'Resume.pdf', YOE: '2 years', JobTitle: 'Developer' },
   ]);
   const [error, setError] = useState('');
@@ -134,59 +134,60 @@ const Dashboard = () => {
           ))}
         </Stepper>
 
-        {/* Step 1 - File Upload */}
-        {step === 1 && (
-          <Box sx={{ marginTop: 2 }}>
-            <Dropzone onDrop={handleFileUpload}>
-              {({ getRootProps, getInputProps }) => (
-                <Box
-                  {...getRootProps()}
-                  sx={{
-                    border: '2px dashed #1976d2',
-                    borderRadius: '10px',
-                    padding: { xs: '20px', sm: '30px', md: '40px' },
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      borderColor: '#1565c0',
-                      backgroundColor: '#e3f2fd',
-                    },
-                  }}
-                >
-                  <input {...getInputProps()} />
-                  <Typography sx={{ color: '#1976d2', fontSize: { xs: '14px', sm: '16px' } }}>
-                    Drag & Drop files here, or click to select files
-                  </Typography>
-                </Box>
-              )}
-            </Dropzone>
-            {files.length > 0 && (
-              <Box sx={{ marginTop: 2 }}>
-                <Typography variant="h6">Uploaded Files:</Typography>
-                <ul>
-                  {files.map((file, index) => (
-                    <li key={index}>{file.name}</li>
-                  ))}
-                </ul>
-              </Box>
-            )}
-            <Box sx={{ marginTop: 2 }}>
-              <Button
-                variant="contained"
-                onClick={() => setStep(2)}
-                color="primary"
-                sx={{
-                  '&:hover': {
-                    backgroundColor: '#1565c0',
-                  },
-                }}
-              >
-                Next
-              </Button>
-            </Box>
-          </Box>
-        )}
+       {/* Step 1 - File Upload */}
+{step === 1 && (
+  <Box sx={{ marginTop: 2 }}>
+    <Dropzone onDrop={handleFileUpload}>
+      {({ getRootProps, getInputProps }) => (
+        <Box
+          {...getRootProps()}
+          sx={{
+            border: '2px dashed #1976d2',
+            borderRadius: '10px',
+            padding: { xs: '20px', sm: '30px', md: '40px' },
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              borderColor: '#1565c0',
+              backgroundColor: '#e3f2fd',
+            },
+          }}
+        >
+          <input {...getInputProps()} />
+          <Typography sx={{ color: '#1976d2', fontSize: { xs: '14px', sm: '16px' } }}>
+            Drag & Drop files here, or click to select files
+          </Typography>
+        </Box>
+      )}
+    </Dropzone>
+    {files.length > 0 && (
+      <Box sx={{ marginTop: 2 }}>
+        <Typography variant="h6">Uploaded Files:</Typography>
+        <ul>
+          {files.map((file, index) => (
+            <li key={index}>{file.name}</li>
+          ))}
+        </ul>
+      </Box>
+    )}
+    <Box sx={{ marginTop: 2 }}>
+      <Button
+        variant="contained"
+        onClick={() => setStep(2)}
+        color="primary"
+        sx={{
+          '&:hover': {
+            backgroundColor: '#1565c0',
+          },
+        }}
+        disabled={files.length === 0} // Disable the button if no file is uploaded
+      >
+        Next
+      </Button>
+    </Box>
+  </Box>
+)}
 
         {/* Step 2 - Add Extraction Tags */}
         {step === 2 && (
