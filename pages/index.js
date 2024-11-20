@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Dropzone from 'react-dropzone';
 import Papa from 'papaparse';
 import {
@@ -16,14 +16,36 @@ import {
   TableCell,
   TableRow,
   Chip,
+  Grid,
 } from '@mui/material';
 
 const Dashboard = () => {
   const [step, setStep] = useState(1);
   const [files, setFiles] = useState([]);
-  const [extractionTags, setExtractionTags] = useState(['Name', 'Date', 'Amount']);
+  const [extractionTags, setExtractionTags] = useState([]);
   const [newTag, setNewTag] = useState('');
-  const [reviewData] = useState([{ Name: 'John Doe', Date: '2024-11-18', Amount: '$500' }]);
+  const [reviewData, setReviewData] = useState([
+    { Name: 'Root', FileName: 'Resume.pdf', YOE: '2 years', JobTitle: 'Developer' },
+  ]);
+  const [error, setError] = useState('');
+
+  const suggestedTags = ['File name', 'YOE', 'Job Title'];
+
+  useEffect(() => {
+    const savedStep = localStorage.getItem('step');
+    const savedTags = JSON.parse(localStorage.getItem('extractionTags'));
+    const savedFiles = JSON.parse(localStorage.getItem('files'));
+
+    if (savedStep) setStep(parseInt(savedStep));
+    if (savedTags) setExtractionTags(savedTags);
+    if (savedFiles) setFiles(savedFiles);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('step', step);
+    localStorage.setItem('extractionTags', JSON.stringify(extractionTags));
+    localStorage.setItem('files', JSON.stringify(files));
+  }, [step, extractionTags, files]);
 
   const handleFileUpload = (acceptedFiles) => {
     setFiles(acceptedFiles);
@@ -34,15 +56,35 @@ const Dashboard = () => {
     if (newTag && !extractionTags.includes(newTag)) {
       setExtractionTags((prevTags) => [...prevTags, newTag]);
       setNewTag('');
+      setError('');
     }
   };
 
+  const handleTagClick = (tag) => {
+    if (!extractionTags.includes(tag)) {
+      setExtractionTags((prevTags) => [...prevTags, tag]);
+    }
+  };
+
+  const handleTagRemove = (tagToRemove) => {
+    setExtractionTags((prevTags) => prevTags.filter((tag) => tag !== tagToRemove));
+  };
+
   const handleDownloadCSV = () => {
-    if (reviewData.length === 0) {
-      alert('No data available for download');
+    if (extractionTags.length === 0) {
+      alert('No tags selected for extraction');
       return;
     }
-    const csv = Papa.unparse(reviewData);
+
+    const filteredData = reviewData.map((data) => {
+      const filteredItem = {};
+      extractionTags.forEach((tag) => {
+        filteredItem[tag] = data[tag] || 'NA';
+      });
+      return filteredItem;
+    });
+
+    const csv = Papa.unparse(filteredData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -53,23 +95,46 @@ const Dashboard = () => {
     document.body.removeChild(link);
   };
 
+  const handleNext = () => {
+    if (extractionTags.length < 3) {
+      setError('Please enter a minimum of 3 extraction tags');
+    } else {
+      setStep(3);
+      setError('');
+    }
+  };
+
+  const handleBack = () => {
+    setStep(1);
+  };
+
+  const handleReset = () => {
+    setFiles([]);
+    setExtractionTags([]);
+    setNewTag('');
+    setStep(1);
+    setError('');
+    localStorage.clear();
+  };
+
   return (
-    <Box sx={{ width: '100%', padding: 2 }}>
-      <Paper elevation={3} sx={{ padding: 4, borderRadius: '10px' }}>
-        <Typography variant="h4" gutterBottom color="primary" sx={{ fontWeight: 'bold' }}>
-          Extract Tool
+    <Box sx={{ width: '100%', padding: { xs: 2, sm: 4, md: 6 }, overflow: 'hidden' }}>
+      <Paper elevation={5} sx={{ padding: { xs: 3, sm: 4, md: 6 }, borderRadius: '12px', backgroundColor: '#f5f5f5' }}>
+        <Typography variant="h3" gutterBottom color="primary" sx={{ fontWeight: 'bold', fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' } }}>
+          Document Extractor Tool
         </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          Automated data extraction tool for organizing key information from documents
+        <Typography variant="h6" gutterBottom sx={{ color: '#555', fontSize: { xs: '1rem', sm: '1.2rem' } }}>
+          Effortlessly extract key information from your documents and export it into a structured format.
         </Typography>
-        <Stepper activeStep={step - 1} alternativeLabel sx={{ marginBottom: 4 }}>
-          {['Upload Files', 'Add Extraction Tags', 'View Data'].map((label) => (
+        <Stepper activeStep={step - 1} alternativeLabel sx={{ marginBottom: 4, fontSize: { xs: '12px', sm: '14px' } }}>
+          {['Upload Files', 'Add Extraction Tags', 'Review & Download'].map((label) => (
             <Step key={label}>
-              <StepLabel>{label}</StepLabel>
+              <StepLabel sx={{ color: '#1976d2' }}>{label}</StepLabel>
             </Step>
           ))}
         </Stepper>
 
+        {/* Step 1 - File Upload */}
         {step === 1 && (
           <Box sx={{ marginTop: 2 }}>
             <Dropzone onDrop={handleFileUpload}>
@@ -77,21 +142,21 @@ const Dashboard = () => {
                 <Box
                   {...getRootProps()}
                   sx={{
-                    border: '2px dashed #90caf9',
-                    borderRadius: '8px',
-                    padding: '20px',
+                    border: '2px dashed #1976d2',
+                    borderRadius: '10px',
+                    padding: { xs: '20px', sm: '30px', md: '40px' },
                     textAlign: 'center',
                     cursor: 'pointer',
-                    transition: 'all 0.3s',
+                    transition: 'all 0.3s ease',
                     '&:hover': {
-                      borderColor: '#42a5f5',
+                      borderColor: '#1565c0',
                       backgroundColor: '#e3f2fd',
                     },
                   }}
                 >
                   <input {...getInputProps()} />
-                  <Typography sx={{ color: '#1976d2' }}>
-                    Drag and drop files here, or click to select files
+                  <Typography sx={{ color: '#1976d2', fontSize: { xs: '14px', sm: '16px' } }}>
+                    Drag & Drop files here, or click to select files
                   </Typography>
                 </Box>
               )}
@@ -106,66 +171,129 @@ const Dashboard = () => {
                 </ul>
               </Box>
             )}
+            <Box sx={{ marginTop: 2 }}>
+              <Button
+                variant="contained"
+                onClick={() => setStep(2)}
+                color="primary"
+                sx={{
+                  '&:hover': {
+                    backgroundColor: '#1565c0',
+                  },
+                }}
+              >
+                Next
+              </Button>
+            </Box>
           </Box>
         )}
 
+        {/* Step 2 - Add Extraction Tags */}
         {step === 2 && (
-          <Box sx={{ marginTop: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Extraction Tags
+          <Box sx={{ marginTop: 2, overflow: 'auto', maxHeight: '400px' }}>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }}>
+              Select or Add Extraction Tags
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', marginBottom: 2 }}>
+            <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>
+              (Double-click on a tag to remove it from the list.)
+            </Typography>
+            <Grid container spacing={2} sx={{ marginBottom: 2 }}>
               {extractionTags.map((tag, index) => (
-                <Chip
-                  key={index}
-                  label={tag}
-                  variant="outlined"
-                  sx={{
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      backgroundColor: '#90caf9',
-                      color: '#ffffff',
-                      cursor: 'pointer',
-                    },
-                  }}
-                />
+                <Grid item key={index}>
+                  <Chip
+                    label={tag}
+                    variant="outlined"
+                    onDoubleClick={() => handleTagRemove(tag)}
+                    sx={{
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: '#1565c0',
+                        color: '#fff',
+                        cursor: 'pointer',
+                      },
+                    }}
+                  />
+                </Grid>
               ))}
-            </Box>
+            </Grid>
+            <Typography variant="body1" gutterBottom sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+              Suggested Tags:
+            </Typography>
+            <Grid container spacing={2} sx={{ marginBottom: 2 }}>
+              {suggestedTags.map((tag, index) => (
+                <Grid item key={index}>
+                  <Chip
+                    label={tag}
+                    onClick={() => handleTagClick(tag)}
+                    variant="outlined"
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: '#90caf9',
+                        color: '#fff',
+                      },
+                    }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
             <TextField
+              label="Add Custom Tag"
+              variant="outlined"
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
-              placeholder="Add new tag"
-              variant="outlined"
-              size="small"
               fullWidth
               sx={{ marginBottom: 2 }}
             />
-            <Button variant="contained" onClick={addExtractionTag} color="primary">
-              Add Tag
-            </Button>
             <Button
               variant="contained"
-              onClick={() => setStep(3)}
-              color="secondary"
-              sx={{ marginLeft: 2 }}
+              color="primary"
+              onClick={addExtractionTag}
+              sx={{
+                marginTop: 2,
+                '&:hover': {
+                  backgroundColor: '#1565c0',
+                },
+              }}
             >
-              Next
+              Add Tag
             </Button>
+            {error && (
+              <Typography variant="body2" color="error" sx={{ marginTop: 2 }}>
+                {error}
+              </Typography>
+            )}
+            <Box sx={{ marginTop: 2 }}>
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                color="primary"
+                sx={{
+                  '&:hover': {
+                    backgroundColor: '#1565c0',
+                  },
+                }}
+              >
+                Next
+              </Button>
+            </Box>
           </Box>
         )}
 
+        {/* Step 3 - Review & Download */}
         {step === 3 && (
           <Box sx={{ marginTop: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Review Data
+              Review Extracted Data
             </Typography>
             {reviewData.length > 0 ? (
-              <Table sx={{ marginBottom: 2 }}>
+              <Table>
                 <TableHead>
                   <TableRow>
-                    {Object.keys(reviewData[0]).map((header, index) => (
-                      <TableCell key={index} sx={{ fontWeight: 'bold' }}>
-                        {header}
+                    {extractionTags.map((tag, i) => (
+                      <TableCell key={i} sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
+                        {tag}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -173,8 +301,8 @@ const Dashboard = () => {
                 <TableBody>
                   {reviewData.map((row, index) => (
                     <TableRow key={index}>
-                      {Object.values(row).map((value, i) => (
-                        <TableCell key={i}>{value}</TableCell>
+                      {extractionTags.map((tag, i) => (
+                        <TableCell key={i}>{row[tag] || 'NA'}</TableCell>
                       ))}
                     </TableRow>
                   ))}
@@ -183,9 +311,45 @@ const Dashboard = () => {
             ) : (
               <Typography>No data available for review</Typography>
             )}
-            <Button variant="contained" onClick={handleDownloadCSV} color="primary">
-              Download CSV
-            </Button>
+            <Box sx={{ marginTop: 2 }}>
+              <Button
+                variant="contained"
+                onClick={handleDownloadCSV}
+                color="primary"
+                sx={{
+                  marginRight: 2,
+                  '&:hover': {
+                    backgroundColor: '#1565c0',
+                  },
+                }}
+              >
+                Download CSV
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleBack}
+                sx={{
+                  marginLeft: 2,
+                  '&:hover': {
+                    backgroundColor: '#e3f2fd',
+                  },
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleReset}
+                sx={{
+                  marginLeft: 2,
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                }}
+              >
+                Reset
+              </Button>
+            </Box>
           </Box>
         )}
       </Paper>
