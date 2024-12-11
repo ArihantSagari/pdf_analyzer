@@ -14,6 +14,33 @@ pnpm dev
 bun dev
 ```
 
+
+# PDF Analyzer (Next.js)
+
+A web application developed with **Next.js** that allows users to upload PDF files and extract specific data based on predefined tags. This project is aimed at simplifying the process of extracting meaningful information from PDF documents.
+
+## Features
+
+- **PDF Upload:** Allows users to upload PDF files for analysis.
+- **Data Extraction:** Extracts specific information from PDFs based on user-defined tags.
+- **User-Friendly Interface:** Designed with a modern, responsive user interface for easy interaction.
+- **Real-Time Processing:** Parses PDF content and displays extracted data in real-time.
+  
+## Technologies Used
+
+- **Frontend:** Next.js
+- **Backend:** (Optional, if you are using one, e.g., Node.js or other APIs for parsing)
+- **Libraries:** PDF.js, React, Tailwind CSS, etc. (List the specific libraries used)
+  
+## Installation
+
+To run this project locally, follow these steps:
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/ArihantSagari/pdf_analyzer.git
+
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
